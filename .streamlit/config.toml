@@ -1,0 +1,11 @@
+[server]
+runOnSave = true
+headless = true
+
+[runner]
+fastReruns = false
+
+[theme]
+base = "dark"
+primaryColor = "#00d2ff"
+font = "sans serif"
