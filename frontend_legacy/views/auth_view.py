@@ -4,7 +4,7 @@ Auth View - Balanced Design
 Fits in viewport with proper sizing - not too cramped.
 """
 import streamlit as st
-from frontend.utils import api
+from frontend_legacy.utils import api
 
 def render_auth_page():
     """Auth page with balanced design."""

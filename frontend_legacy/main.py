@@ -1,17 +1,17 @@
 """
-AI Healthcare System - Frontend Application
+AI Healthcare System - frontend_legacy Application
 ============================================
 
 Main entry point. Orchestrates the UI using the Sidebar Navigation pattern.
 Delegates logic to Views and Utilities.
 
-Author: Pavan Badempet
+Author: Mohamad Kardi
 """
 import streamlit as st
 import os
 import sys
 
-# Add project root to path to allow imports from frontend package
+# Add project root to path to allow imports from frontend_legacy package
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from streamlit_lottie import st_lottie
@@ -20,8 +20,8 @@ from streamlit_option_menu import option_menu
 import extra_streamlit_components as stx
 
 # --- Import Custom Modules ---
-from frontend.utils import api
-from frontend.views import (
+from frontend_legacy.utils import api
+from frontend_legacy.views import (
     auth_view, 
     dashboard_view, 
     profile_view, 
@@ -66,7 +66,7 @@ def load_lottieurl(url: str):
         return r.json()
     except: return None
 
-from frontend.components import sidebar
+from frontend_legacy.components import sidebar
 
 # --- Main App Orchestrator ---
 def main():
@@ -97,7 +97,7 @@ def main():
     selected_label = sidebar.render_sidebar()
     
     # Resolve to English key for routing
-    from frontend.utils import i18n
+    from frontend_legacy.utils import i18n
     selected = i18n.get_english_key(selected_label)
     
     # Routing Logic
@@ -119,16 +119,16 @@ def main():
     elif selected == "profile":
         profile_view.render_profile_page()
     elif selected == "pricing":
-        from frontend.views import pricing_view
+        from frontend_legacy.views import pricing_view
         pricing_view.render_pricing_page()
     elif selected == "telemedicine":
-        from frontend.views import telemedicine_view
+        from frontend_legacy.views import telemedicine_view
         telemedicine_view.render_telemedicine_page()
     elif selected == "about":
-        from frontend.views import about_view
+        from frontend_legacy.views import about_view
         about_view.render_about_page()
     elif selected == "admin":
-        from frontend.views import admin_view
+        from frontend_legacy.views import admin_view
         admin_view.render_admin_page()
 
 if __name__ == '__main__':

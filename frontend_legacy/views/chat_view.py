@@ -5,7 +5,7 @@ Modern chat interface with typing indicators, reactions, and enhanced UX.
 """
 import streamlit as st
 import requests
-from frontend.utils import api
+from frontend_legacy.utils import api
 
 BACKEND_URL = api.BACKEND_URL
 

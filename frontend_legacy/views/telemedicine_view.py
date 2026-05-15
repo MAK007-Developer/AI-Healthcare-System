@@ -21,7 +21,7 @@ def render_telemedicine_page():
         st.markdown("### 📅 Book an Appointment")
         with st.form("booking_form"):
             # Fetch Doctors Dynamic List
-            from frontend.utils import api
+            from frontend_legacy.utils import api
             doctors = api.fetch_doctors()
             
             doctor_map = {}
@@ -71,7 +71,7 @@ def render_telemedicine_page():
     with col2:
         st.markdown("### 🧬 Upcoming Sessions")
         
-        from frontend.utils import api
+        from frontend_legacy.utils import api
         appointments = api.fetch_appointments()
         
         if appointments:

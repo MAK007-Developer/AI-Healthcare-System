@@ -6,7 +6,7 @@ Currently mostly static/mock updates, but essential for "sellability".
 """
 import streamlit as st
 import streamlit.components.v1 as components
-from frontend.utils import api
+from frontend_legacy.utils import api
 
 def render_pricing_page():
     # --- STATE MANAGEMENT ---

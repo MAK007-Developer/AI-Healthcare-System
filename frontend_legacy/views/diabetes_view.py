@@ -1,6 +1,6 @@
 import streamlit as st
-from frontend.utils import api
-from frontend.components import charts
+from frontend_legacy.utils import api
+from frontend_legacy.components import charts
 
 def render_diabetes_page():
     st.markdown("""

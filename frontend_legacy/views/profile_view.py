@@ -1,5 +1,5 @@
 import streamlit as st
-from frontend.utils import api
+from frontend_legacy.utils import api
 
 def render_profile_page():
     username = st.session_state.get('username', 'Patient')
