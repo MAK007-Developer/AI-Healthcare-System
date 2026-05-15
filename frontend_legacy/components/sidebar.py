@@ -5,7 +5,7 @@ Clean, modern navigation using standard Streamlit components.
 """
 import streamlit as st
 from streamlit_option_menu import option_menu
-from frontend.utils import api, i18n
+from frontend_legacy.utils import api, i18n
 
 def render_sidebar():
     """

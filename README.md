@@ -96,7 +96,7 @@ pip install -r requirements-full.txt
 uvicorn backend.main:app --reload --port 8000
 
 # Start Frontend (Terminal 2)
-streamlit run frontend/main.py
+streamlit run frontend_legacy/main.py
 ```
 
 ### Option 3: Quick Scripts (Windows)
