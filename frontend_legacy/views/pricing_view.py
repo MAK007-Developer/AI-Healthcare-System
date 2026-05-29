@@ -213,7 +213,7 @@ def render_pricing_page():
 <div style="position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: #3B82F6; color: white; padding: 2px 12px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">RECOMMENDED</div>
 <h3 style="margin-top: 0; color: #60A5FA; font-weight: 600;">Diagnostic Center</h3>
 <div style="font-size: 2.5rem; font-weight: 700; margin: 1rem 0; color: #E2E8F0;">
-₹2,499<span style="font-size: 1rem; color: #94A3B8; font-weight: 400;">/mo</span>
+$100<span style="font-size: 1rem; color: #94A3B8; font-weight: 400;">/mo</span>
 </div>
 <p style="color: #94A3B8; font-size: 0.9rem;">For mid-sized labs & clinics</p>
 <div style="margin: 2rem 0; text-align: left; font-size: 0.9rem; color: #CBD5E1;">

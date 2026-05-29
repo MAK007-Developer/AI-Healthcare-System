@@ -44,7 +44,7 @@ def render_about_page():
         
         ---
         
-        **Support:** pavan9b@gmail.com  
+        **Support:** developer@gmail.com  
         
         **License:** Patient Personal Use License  
         **Privacy:** HIPAA Compliant Data Vault
