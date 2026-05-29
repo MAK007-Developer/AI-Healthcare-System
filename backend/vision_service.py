@@ -1,5 +1,5 @@
 
-import google.generativeai as genai
+import google.genai as genai
 import os
 import json
 import logging

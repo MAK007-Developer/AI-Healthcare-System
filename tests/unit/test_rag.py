@@ -14,8 +14,8 @@ def mock_vector_db(monkeypatch, tmp_path):
         
     monkeypatch.setenv("GOOGLE_API_KEY", "mock_key")
         
-    monkeypatch.setattr("google.generativeai.embed_content", mock_embed)
-    monkeypatch.setattr("google.generativeai.configure", lambda api_key: None)
+    monkeypatch.setattr("google.genai.embed_content", mock_embed)
+    monkeypatch.setattr("google.genai.configure", lambda api_key: None)
 
     # Create temp DB file
     d = tmp_path / "test_vector_store.pkl"
