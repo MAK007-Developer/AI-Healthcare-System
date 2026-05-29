@@ -1,5 +1,5 @@
 import warnings
-warnings.filterwarnings("ignore", message=".*google.genai.*", category=FutureWarning)
+warnings.filterwarnings("ignore", message=".*google.generativeai.*", category=FutureWarning)
 
 import pytest
 from fastapi.testclient import TestClient

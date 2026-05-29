@@ -46,7 +46,7 @@
       "copilot_apply_to": "backend/**",
       "copilot_lines": [
         "Read backend/AGENTS.md for backend-specific rules.",
-        "All AI calls go through core_ai.py — never import google.genai directly.",
+        "All AI calls go through core_ai.py — never import google.generativeai directly.",
         "Use Depends(database.get_db) for DB sessions in routes.",
         "Prompts are version-controlled in prompt_registry.py.",
         "HIPAA: Health data must be scoped to current_user.id."

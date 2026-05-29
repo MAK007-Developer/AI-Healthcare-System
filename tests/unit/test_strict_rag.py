@@ -8,9 +8,9 @@ from backend.rag import SimpleVectorStore, add_checkup_to_db, add_interaction_to
 # FIXTURE: Mock Embedding Model GLOBAL to prevent download
 @pytest.fixture(autouse=True)
 def mock_embedding_model():
-    # Mock google.genai
-    with patch("google.genai.embed_content") as mock_embed, \
-         patch("google.genai.configure") as mock_conf:
+    # Mock google.generativeai
+    with patch("google.generativeai.embed_content") as mock_embed, \
+         patch("google.generativeai.configure") as mock_conf:
          
         mock_embed.return_value = {'embedding': [0.1] * 5}
         yield mock_embed

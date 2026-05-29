@@ -233,7 +233,7 @@ def _get_gemini_model():
     if not GOOGLE_API_KEY or GOOGLE_API_KEY == "dummy":
         return None
     try:
-        import google.genai as genai
+        import google.generativeai as genai
         if not _gemini_configured:
             genai.configure(api_key=GOOGLE_API_KEY)
             _gemini_configured = True
