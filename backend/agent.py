@@ -48,7 +48,10 @@ class CoreAIWrapper:
                 with concurrent.futures.ThreadPoolExecutor() as pool:
                     result = pool.submit(asyncio.run, core_ai.generate(full_prompt)).result()
             else:
-                result = asyncio.run(core_ai.generate(full_prompt))
+                result = asyncio.run(core_ai.generate(
+                full_prompt,
+                api_provider=os.getenv("GEMINI_MODEL"),
+                api_key=os.getenv("GOOGLE_API_KEY")))
 
             if result:
                 return AIMessage(content=result)

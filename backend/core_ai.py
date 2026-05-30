@@ -40,7 +40,7 @@ OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.2")
 OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "120"))
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
 
 # ── Model list TTL cache (avoids redundant /api/tags calls) ──────────
 _model_cache: dict[str, tuple[float, list[str]]] = {}
@@ -226,18 +226,16 @@ _gemini_model = None
 
 
 def _get_gemini_model():
-    """Lazy-load Gemini model."""
     global _gemini_configured, _gemini_model
     if _gemini_model:
         return _gemini_model
     if not GOOGLE_API_KEY or GOOGLE_API_KEY == "dummy":
         return None
     try:
-        import google.generativeai as genai
-        if not _gemini_configured:
-            genai.configure(api_key=GOOGLE_API_KEY)
-            _gemini_configured = True
-        _gemini_model = genai.GenerativeModel(GEMINI_MODEL)
+        import google.genai as genai        # ← new package
+        _gemini_model = genai.Client(api_key=GOOGLE_API_KEY)  # ← new API
+        _gemini_configured = True
+        logger.info("Gemini model initialized successfully.")
         return _gemini_model
     except Exception as e:
         logger.warning("Failed to initialize Gemini: %s", e)
@@ -245,13 +243,17 @@ def _get_gemini_model():
 
 
 async def _generate_gemini(prompt: str, system: str = "") -> str:
-    """Generate text using Google Gemini."""
-    model = _get_gemini_model()
-    if not model:
+    client = _get_gemini_model()
+    if not client:
         return ""
     full_prompt = f"{system}\n\n{prompt}" if system else prompt
     try:
-        response = await asyncio.to_thread(model.generate_content, full_prompt)
+        response = await asyncio.to_thread(
+            client.models.generate_content,
+            model=GEMINI_MODEL,
+            contents=full_prompt
+        )
+        logger.info("Gemini generation successful.")
         return response.text.strip() if response.text else ""
     except Exception as e:
         err = str(e)
@@ -263,9 +265,8 @@ async def _generate_gemini(prompt: str, system: str = "") -> str:
 
 
 async def _chat_gemini(messages: list[dict], system: str = "") -> str:
-    """Chat using Gemini (converts messages to single prompt)."""
-    model = _get_gemini_model()
-    if not model:
+    client = _get_gemini_model()
+    if not client:
         return ""
     parts = []
     if system:
@@ -275,12 +276,16 @@ async def _chat_gemini(messages: list[dict], system: str = "") -> str:
         parts.append(f"{role}: {msg.get('content', '')}\n")
     full_prompt = "\n".join(parts)
     try:
-        response = await asyncio.to_thread(model.generate_content, full_prompt)
+        response = await asyncio.to_thread(
+            client.models.generate_content,
+            model=GEMINI_MODEL,
+            contents=full_prompt
+        )
+        logger.info("Gemini chat successful.")
         return response.text.strip() if response.text else ""
     except Exception as e:
         logger.warning("Gemini chat error: %s", e)
         return ""
-
 
 async def _stream_gemini(messages: list[dict], system: str = ""):
     """Pseudo-stream from Gemini (single-chunk yield — Gemini SDK doesn't support true SSE)."""
