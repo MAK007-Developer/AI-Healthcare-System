@@ -1,88 +1,201 @@
 import streamlit as st
+from datetime import datetime
 from frontend_legacy.utils import api
 from frontend_legacy.components import charts
+
+
+# ---------------------------------------------------------------------------
+# Field reference (UCI Cleveland Heart Disease dataset)
+# ---------------------------------------------------------------------------
+# age       – years
+# sex       – 1 = Male, 0 = Female
+# cp        – chest pain type: 0 = typical angina, 1 = atypical angina,
+#              2 = non-anginal pain, 3 = asymptomatic
+# trestbps  – resting blood pressure (mm Hg on admission)
+# chol      – serum cholesterol (mg/dl)
+# fbs       – fasting blood sugar > 120 mg/dl: 1 = True, 0 = False
+# restecg   – resting ECG: 0 = normal, 1 = ST-T abnormality,
+#              2 = left ventricular hypertrophy (Estes' criteria)
+# thalach   – maximum heart rate achieved (bpm)
+# exang     – exercise-induced angina: 1 = Yes, 0 = No
+# oldpeak   – ST depression induced by exercise relative to rest
+# slope     – slope of peak exercise ST segment:
+#              0 = upsloping, 1 = flat, 2 = downsloping
+# ca        – number of major vessels coloured by fluoroscopy (0–3)
+# thal      – thalassemia: 1 = normal, 2 = fixed defect, 3 = reversible defect
+# ---------------------------------------------------------------------------
+
 
 def render_heart_page():
     st.markdown("""
 <div style="margin-bottom: 2rem;">
     <h2 style="margin:0; font-size: 1.75rem;">❤️ Heart Health Screening</h2>
     <p style="color: #94A3B8; margin-top: 0.5rem;">
-        Assess cardiovascular risk factors using metrics from your check-up.
+        Assess cardiovascular risk using clinical metrics from your check-up.
+        Values are sourced from the UCI Cleveland Heart Disease dataset.
     </p>
 </div>
 """, unsafe_allow_html=True)
-    
-    # --- Autofill Logic ---
+
+    # ------------------------------------------------------------------
+    # Autofill from profile
+    # ------------------------------------------------------------------
     profile = api.fetch_profile() or {}
-    
-    # 1. Age Calculation
+
+    # Age
     default_age = 45
-    if profile.get('dob'):
+    if profile.get("dob"):
         try:
-            from datetime import datetime
-            birth_date = datetime.strptime(str(profile['dob']).split()[0], "%Y-%m-%d")
+            birth_date = datetime.strptime(
+                str(profile["dob"]).split()[0], "%Y-%m-%d"
+            )
             today = datetime.today()
-            default_age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
-        except:
+            default_age = (
+                today.year
+                - birth_date.year
+                - ((today.month, today.day) < (birth_date.month, birth_date.day))
+            )
+        except Exception:
             pass
 
-    # 2. Gender
-    p_gender = profile.get('gender', 'Male')
-    gender_idx = 0 if p_gender == "Female" else 1 # [Female, Male]
-    
-    # 3. BMI Calculation
-    default_bmi = 25.0
-    if profile.get('height') and profile.get('weight'):
+    # Sex (profile stores "Male" / "Female")
+    p_gender = profile.get("gender", "Male")
+    gender_idx = 0 if p_gender == "Female" else 1  # selectbox: [Female, Male]
+
+    # Resting BP – use profile systolic if available
+    default_bp = 120
+    if profile.get("systolic_bp"):
         try:
-            h_m = float(profile['height']) / 100
-            w_kg = float(profile['weight'])
-            default_bmi = round(w_kg / (h_m ** 2), 1)
-        except:
+            default_bp = int(profile["systolic_bp"])
+        except Exception:
             pass
 
+    # ------------------------------------------------------------------
+    # Form inputs – two columns
+    # ------------------------------------------------------------------
     col1, col2 = st.columns(2)
-    with col1:
-        age = st.number_input("Age", 1, 120, default_age)
-        gender = st.selectbox("Gender", ["Female", "Male"], index=gender_idx)
-        bmi = st.number_input("BMI", 10.0, 50.0, default_bmi)
-        systolic = st.number_input("Systolic BP", 80, 250, 120)
-        chol = st.number_input("Cholesterol", 100, 600, 200)
-    
-    with col2:
-        smoker = st.selectbox("Smoked 100+ cigs in lifetime?", ["No", "Yes"])
-        stroke = st.selectbox("History of Stroke?", ["No", "Yes"])
-        diabetes = st.selectbox("Diabetes History?", ["No", "Yes"])
-        activity = st.selectbox("Physical Activity (Past 30d)", ["No", "Yes"])
-        alcohol = st.selectbox("Heavy Alcohol Consumption?", ["No", "Yes"])
-        general = st.slider("General Health", 1, 5, 3)
 
+    with col1:
+        age = st.number_input("Age (years)", min_value=1, max_value=120, value=default_age)
+
+        gender = st.selectbox("Sex", ["Female", "Male"], index=gender_idx)
+
+        cp = st.selectbox(
+            "Chest pain type",
+            options=[0, 1, 2, 3],
+            format_func=lambda x: {
+                0: "0 – Typical angina",
+                1: "1 – Atypical angina",
+                2: "2 – Non-anginal pain",
+                3: "3 – Asymptomatic",
+            }[x],
+        )
+
+        trestbps = st.number_input(
+            "Resting blood pressure (mm Hg)", min_value=80, max_value=250, value=default_bp
+        )
+
+        chol = st.number_input(
+            "Serum cholesterol (mg/dl)", min_value=100, max_value=600, value=200
+        )
+
+        fbs_raw = st.selectbox("Fasting blood sugar > 120 mg/dl?", ["No", "Yes"])
+
+    with col2:
+        restecg = st.selectbox(
+            "Resting ECG result",
+            options=[0, 1, 2],
+            format_func=lambda x: {
+                0: "0 – Normal",
+                1: "1 – ST-T wave abnormality",
+                2: "2 – Left ventricular hypertrophy",
+            }[x],
+        )
+
+        thalach = st.number_input(
+            "Maximum heart rate achieved (bpm)", min_value=60, max_value=220, value=150
+        )
+
+        exang_raw = st.selectbox("Exercise-induced angina?", ["No", "Yes"])
+
+        oldpeak = st.number_input(
+            "ST depression (exercise vs rest)", min_value=0.0, max_value=10.0,
+            value=1.0, step=0.1, format="%.1f"
+        )
+
+        slope = st.selectbox(
+            "Slope of peak exercise ST segment",
+            options=[0, 1, 2],
+            format_func=lambda x: {
+                0: "0 – Upsloping",
+                1: "1 – Flat",
+                2: "2 – Downsloping",
+            }[x],
+        )
+
+        ca = st.selectbox(
+            "Major vessels coloured by fluoroscopy",
+            options=[0, 1, 2, 3],
+            format_func=lambda x: f"{x} vessel{'s' if x != 1 else ''}",
+        )
+
+        thal = st.selectbox(
+            "Thalassemia",
+            options=[1, 2, 3],
+            format_func=lambda x: {
+                1: "1 – Normal",
+                2: "2 – Fixed defect",
+                3: "3 – Reversible defect",
+            }[x],
+        )
+
+    # ------------------------------------------------------------------
+    # Predict
+    # ------------------------------------------------------------------
     if st.button("Predict Heart Risk", type="primary"):
         inputs = {
-            "age": age,
-            "gender": 1 if gender == "Male" else 0,
-            "high_bp": 1 if systolic > 130 else 0,
-            "high_chol": 1 if chol > 200 else 0,
-            "bmi": bmi,
-            "smoker": 1 if smoker == "Yes" else 0,
-            "stroke": 1 if stroke == "Yes" else 0,
-            "diabetes": 1 if diabetes == "Yes" else 0,
-            "phys_activity": 1 if activity == "Yes" else 0,
-            "hvy_alcohol": 1 if alcohol == "Yes" else 0,
-            "gen_hlth": general
+            "age":      age,
+            "sex":      1 if gender == "Male" else 0,
+            "cp":       cp,
+            "trestbps": trestbps,
+            "chol":     chol,
+            "fbs":      1 if fbs_raw == "Yes" else 0,
+            "restecg":  restecg,
+            "thalach":  thalach,
+            "exang":    1 if exang_raw == "Yes" else 0,
+            "oldpeak":  oldpeak,
+            "slope":    slope,
+            "ca":       ca,
+            "thal":     thal,
         }
-        
-        with st.spinner("Analyzing Heart Health..."):
+
+        with st.spinner("Analyzing heart health..."):
             result = api.get_prediction("heart", inputs)
-            
+
         if "error" in result:
-            st.error(result['error'])
+            st.error(result["error"])
         else:
             prediction = result.get("prediction", "Unknown")
+            confidence = result.get("confidence")
+            risk_level = result.get("risk_level")
+            disclaimer = result.get("disclaimer", "")
+
             st.success(f"Result: **{prediction}**")
+
+            if confidence is not None and risk_level:
+                st.info(f"Risk level: **{risk_level}** ({confidence}% confidence)")
+
+            if disclaimer:
+                st.caption(disclaimer)
+
             api.save_record("Heart", inputs, prediction)
-            
+
             c1, c2 = st.columns(2)
-            with c1: charts.render_radar_chart(inputs)
-            with c2: 
+            with c1:
+                st.subheader("Risk Profile")
+                charts.render_radar_chart(inputs)
+            with c2:
+                st.subheader("Explanation (SHAP)")
                 html = api.get_explanation("heart", inputs)
-                if html: st.components.v1.html(html, height=300, scrolling=True)
+                if html:
+                    st.components.v1.html(html, height=300, scrolling=True)

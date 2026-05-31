@@ -224,9 +224,16 @@ def get_explanation(endpoint: str, data: Dict) -> str:
     try:
         resp = requests.post(f"{BACKEND_URL}/predict/explain/{endpoint}", json=data, headers=_headers())
         if resp.status_code in [200, 201]:
-            return resp.json().get("html_plot", "")
+            return resp.json().get("html_plot", "")  # key is "html_plot" — set by explainability.py
+        # Surface non-2xx so the UI shows what went wrong instead of silent blank
+        try:
+            detail = resp.json().get("detail", resp.text)
+        except Exception:
+            detail = resp.text
+        st.warning(f"Explanation unavailable (HTTP {resp.status_code}): {detail}")
         return ""
-    except Exception:
+    except Exception as e:
+        st.warning(f"Explanation request failed: {e}")
         return ""
 
 def get_ai_explanation(prediction_type: str, inputs: Dict, result: str) -> Dict:

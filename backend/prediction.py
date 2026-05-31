@@ -323,8 +323,8 @@ def explain_diabetes(data: schemas.DiabetesInput):
     if explanation: return explanation
     raise HTTPException(status_code=500, detail="Explanation Generation Failed")
 
-@router.post("/predict/explain/heart")
-def explain_heart(data: schemas.HeartInput):
+@router.post("/predict/explain/heart", response_model=Dict[str, Any])
+def explain_heart(data: schemas.HeartInput) -> Dict[str, Any]:
     if not heart_model:
         raise HTTPException(status_code=503, detail="Model unavailable")
     
