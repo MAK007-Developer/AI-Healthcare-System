@@ -27,7 +27,7 @@ def render_telemedicine_page():
             doctor_map = {}
             if doctors:
                 for doc in doctors:
-                    label = f"{doc['full_name']} - {doc['specialization']} (₹{doc['consultation_fee']})"
+                    label = f"{doc['full_name']} - {doc['specialization']} (${doc['consultation_fee']})"
                     doctor_map[label] = doc
                     
                 selected_label = st.selectbox("Select Specialist", list(doctor_map.keys()))
@@ -122,4 +122,4 @@ def render_telemedicine_page():
         
         st.markdown("---")
         st.markdown("### 🚑 Emergency?")
-        st.error("Call 911 (US) or 102 (India) immediately.")
+        st.error("Call 911 (US) or 112 (SYRIA) immediately.")

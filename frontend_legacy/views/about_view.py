@@ -157,7 +157,7 @@ def render_about_page():
         
         ### 7. Contact Us
         
-        For privacy concerns: pavan9b@gmail.com
+        For privacy concerns: developer@gmail.com
         
         ---
         
