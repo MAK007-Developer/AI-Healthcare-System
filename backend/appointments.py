@@ -16,14 +16,9 @@ def create_appointment(
 ):
     # Combine date and time strings into a datetime object
     try:
-        dt_str = f"{appt.date} {appt.time}"
-        appointment_dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
+        appointment_dt = datetime.fromisoformat(f"{appt.date}T{appt.time}")
     except ValueError:
-        try:
-             # Try without seconds if failed
-             appointment_dt = datetime.strptime(dt_str, "%Y-%m-%d %H:%M")
-        except:
-             raise HTTPException(status_code=400, detail="Invalid date/time format")
+        raise HTTPException(status_code=400, detail="Invalid date/time format")
     
     new_appt = models.Appointment(
         user_id=current_user.id,

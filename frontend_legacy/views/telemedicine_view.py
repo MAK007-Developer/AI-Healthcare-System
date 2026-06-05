@@ -58,7 +58,7 @@ def render_telemedicine_page():
                         "doctor_id": doctor_id,
                         "specialist": specialist_name,
                         "date": str(d),
-                        "time": str(t),
+                        "time": t.strftime("%H:%M"),
                         "reason": reason
                     }
                     if api.book_appointment(payload):
