@@ -41,7 +41,7 @@ def create_appointment(
         to_email=current_user.email or "patient@example.com",
         patient_name=current_user.full_name or current_user.username,
         doctor_name=appt.specialist,
-        date_time=dt_str,
+        date_time=appointment_dt,
         link=video_link
     )
     
