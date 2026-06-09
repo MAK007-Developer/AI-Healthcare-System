@@ -176,20 +176,13 @@ def render_heart_page():
             st.error(result["error"])
         else:
             prediction = result.get("prediction", "Unknown")
-            confidence = result.get("confidence")
-            risk_level = result.get("risk_level")
             disclaimer = result.get("disclaimer", "")
 
             st.success(f"Result: **{prediction}**")
-
-            if confidence is not None and risk_level:
-                st.info(f"Risk level: **{risk_level}** ({confidence}% confidence)")
-
             if disclaimer:
                 st.caption(disclaimer)
 
             api.save_record("Heart", inputs, prediction)
-
             c1, c2 = st.columns(2)
             with c1:
                 st.subheader("Risk Profile")
