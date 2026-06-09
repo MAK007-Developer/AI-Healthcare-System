@@ -148,18 +148,18 @@ def delete_health_record(record_id: int, current_user: models.User = Depends(aut
 
 # --- PDF Report ---
 
-@router.get("/download/health-report")
-def download_health_report(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
-    records = db.query(models.HealthRecord).filter(models.HealthRecord.user_id == current_user.id)\
-        .order_by(models.HealthRecord.timestamp.desc()).limit(50).all()
+# @router.get("/download/health-report")
+# def download_health_report(current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
+#     records = db.query(models.HealthRecord).filter(models.HealthRecord.user_id == current_user.id)\
+#         .order_by(models.HealthRecord.timestamp.desc()).limit(50).all()
     
-    records_list = [{"timestamp": r.timestamp, "record_type": r.record_type, "prediction": r.prediction} for r in records]
+#     records_list = [{"timestamp": r.timestamp, "record_type": r.record_type, "prediction": r.prediction} for r in records]
     
-    pdf_bytes = pdf_generator.generate_health_report(
-        user_name=current_user.full_name or current_user.username,
-        user_profile={"height": current_user.height, "weight": current_user.weight, "blood_type": current_user.blood_type},
-        health_records=records_list
-    )
+#     pdf_bytes = pdf_generator.generate_health_report(
+#         user_name=current_user.full_name or current_user.username,
+#         user_profile={"height": current_user.height, "weight": current_user.weight, "blood_type": current_user.blood_type},
+#         health_records=records_list
+#     )
     
-    filename = f"health_report_{current_user.username}_{datetime.datetime.now().strftime('%Y%m%d')}.pdf"
-    return Response(content=pdf_bytes, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename={filename}"})
+#     filename = f"health_report_{current_user.username}_{datetime.datetime.now().strftime('%Y%m%d')}.pdf"
+#     return Response(content=pdf_bytes, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename={filename}"})
