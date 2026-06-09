@@ -63,7 +63,6 @@ def render_telemedicine_page():
                     }
                     if api.book_appointment(payload):
                         st.success(f"✅ Appointment Confirmed with {specialist_name}!")
-                        st.info("📧 Confirmation email has been sent.")
                         st.balloons()
                         time.sleep(2)
                         st.rerun()
