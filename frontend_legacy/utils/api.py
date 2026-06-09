@@ -172,13 +172,18 @@ def update_profile(data: Dict[str, Any]) -> bool:
 
 def fetch_health_report() -> Optional[bytes]:
     """Fetch the PDF health report with auth headers."""
-    if 'token' not in st.session_state: return None
+    if 'token' not in st.session_state: 
+        st.error("Authentication token missing. Please log in again.")
+        return None
     try:
         resp = requests.get(f"{BACKEND_URL}/download/health-report", headers=_headers())
         if resp.status_code == 200:
             return resp.content
+        else:
+            # Highlight backend errors explicitly in console/logs
+            print(f"Backend Error: Status code {resp.status_code}, Detail: {resp.text}")
     except Exception as e:
-        print(f"Error fetching report: {e}")
+        print(f"Network Error fetching report: {e}")
     return None
 
 # --- Records ---
