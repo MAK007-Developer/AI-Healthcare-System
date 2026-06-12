@@ -106,19 +106,7 @@ def render_diabetes_page():
             "general_health": gen_health,
             "gender": 1 if gender == "Male" else 0,
             "age_bucket": age,
-        }
-        """
-        'hypertension': [hypertension], 
-        'high_chol': [high_chol], 
-        'bmi': [bmi], 
-        'smoking_history': [smoking_history],
-        'heart_disease': [heart_disease], 
-        'physical_activity': [physical_activity], 
-        'general_health': [general_health],
-        'gender': [gender], 
-        'age_bucket': [age_bucket]
-        """
-        
+        } 
         # Override smoking mapping if the user chose specific strings? 
         # Schema documentation was "0: No, 1: Yes". 
         # Ideally, we should trust the schema.
