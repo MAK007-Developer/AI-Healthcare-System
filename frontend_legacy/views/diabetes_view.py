@@ -1,6 +1,18 @@
+import os
+import pickle
 import streamlit as st
+from backend.train_diabetes import MODEL_PATH
 from frontend_legacy.utils import api
 from frontend_legacy.components import charts
+import streamlit as st
+import pandas as pd
+import shap
+import matplotlib.pyplot as plt
+
+@st.cache_resource
+def load_model():
+    with open(MODEL_PATH, 'rb') as f:
+        return pickle.load(f)
 
 def render_diabetes_page():
     st.markdown("""
@@ -11,6 +23,17 @@ def render_diabetes_page():
     </p>
 </div>
 """, unsafe_allow_html=True)
+
+
+    # --- Configuration ---
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    #MODEL_PATH = os.path.join(BASE_DIR, "backend", "diabetes_model.pkl")
+
+    # --- 1. Load the Model ---
+    # We use @st.cache_resource so the model loads only once when the app starts, making it fast.
+    
+
+    model = load_model()
 
     # --- Autofill Logic ---
     profile = api.fetch_profile() or {}
@@ -73,7 +96,6 @@ def render_diabetes_page():
             "hypertension": 1 if hypertension == "Yes" else 0,
             "heart_disease": 1 if heart_disease == "Yes" else 0,
             "smoking_history": 1 if smoking == "Yes" else 0,
-            # Backend schema expects smoking_history as 0/1.
             "bmi": bmi,
             "HbA1c_level": hba1c,
             "glucose": glucose,
@@ -81,6 +103,28 @@ def render_diabetes_page():
             "physical_activity": 1 if activity == "Yes" else 0,
             "general_health": gen_health,
         }
+        inputsSHAP = {
+            "hypertension": 1 if hypertension == "Yes" else 0,
+            "high_chol": 1 if high_chol == "Yes" else 0,
+            "bmi": bmi,
+            "smoking_history": 1 if smoking == "Yes" else 0,
+            "heart_disease": 1 if heart_disease == "Yes" else 0,
+            "physical_activity": 1 if activity == "Yes" else 0,
+            "general_health": gen_health,
+            "gender": 1 if gender == "Male" else 0,
+            "age_bucket": age,
+        }
+        """
+        'hypertension': [hypertension], 
+        'high_chol': [high_chol], 
+        'bmi': [bmi], 
+        'smoking_history': [smoking_history],
+        'heart_disease': [heart_disease], 
+        'physical_activity': [physical_activity], 
+        'general_health': [general_health],
+        'gender': [gender], 
+        'age_bucket': [age_bucket]
+        """
         
         # Override smoking mapping if the user chose specific strings? 
         # Schema documentation was "0: No, 1: Yes". 
@@ -106,34 +150,54 @@ def render_diabetes_page():
                 charts.render_radar_chart(inputs)
             with c2:
                 st.subheader("Explanation (SHAP)")
-                html = api.get_explanation("diabetes", inputs)
-                if html:
-                    st.components.v1.html(html, height=300, scrolling=True)
-            
+                # Convert to DataFrame
+                # 1. Wrap the inputs dict in a list so Pandas reads it as a single row
+                input_df = pd.DataFrame([inputsSHAP])
+
+                # 2. Filter out extra lab values (like HbA1c and glucose) if your trained model 
+                # only expects the 9 features defined in DIABETES_FEATURES.
+                # from backend.features import DIABETES_DATASET_MAP
+                # input_df = input_df[DIABETES_DATASET_MAP.values()]
+
+                # 3. Initialize the SHAP Explainer using your loaded model
+                explainer = shap.Explainer(model)
+
+                # 4. Compute the SHAP values safely using the cleaned DataFrame
+                shap_values = explainer(input_df)
+
+                # 5. Create the Matplotlib figure container
+                fig, ax = plt.subplots(figsize=(10, 6))
+
+                # 6. Generate the Waterfall plot for our patient (row index 0)
+                shap.plots.waterfall(shap_values[0], show=False)
+
+                # 7. Safely push the visual into the Streamlit UI layout
+                st.pyplot(fig)
+        
             # --- Generative AI Explanation ---
-            with st.spinner("Generating AI Health Insights..."):
-                ai_resp = api.get_ai_explanation("Diabetes", inputs, prediction)
+#             with st.spinner("Generating AI Health Insights..."):
+#                 ai_resp = api.get_ai_explanation("Diabetes", inputs, prediction)
                 
-            if ai_resp:
-                st.markdown("---")
-                st.subheader("🤖 AI Health Analysis")
+#             if ai_resp:
+#                 st.markdown("---")
+#                 st.subheader("🤖 AI Health Analysis")
                 
-                # Explanation
-                st.markdown(f"""
-<div style="
-    background: rgba(30, 41, 59, 0.5); 
-    border-left: 4px solid #3B82F6;
-    padding: 1rem;
-    border-radius: 4px;
-    margin-bottom: 1.5rem;
-">
-    <h4 style="margin-top:0; color: #60A5FA;">Assessment</h4>
-    <p style="margin-bottom:0; color: #E2E8F0;">{ai_resp.get('explanation', '')}</p>
-</div>
-""", unsafe_allow_html=True)
+#                 # Explanation
+#                 st.markdown(f"""
+# <div style="
+#     background: rgba(30, 41, 59, 0.5); 
+#     border-left: 4px solid #3B82F6;
+#     padding: 1rem;
+#     border-radius: 4px;
+#     margin-bottom: 1.5rem;
+# ">
+#     <h4 style="margin-top:0; color: #60A5FA;">Assessment</h4>
+#     <p style="margin-bottom:0; color: #E2E8F0;">{ai_resp.get('explanation', '')}</p>
+# </div>
+# """, unsafe_allow_html=True)
                 
-                # Tips
-                if ai_resp.get('lifestyle_tips'):
-                    st.markdown("#### 💡 Personalized Recommendations")
-                    for tip in ai_resp['lifestyle_tips']:
-                        st.markdown(f"- {tip}")
+#                 # Tips
+#                 if ai_resp.get('lifestyle_tips'):
+#                     st.markdown("#### 💡 Personalized Recommendations")
+#                     for tip in ai_resp['lifestyle_tips']:
+#                         st.markdown(f"- {tip}")
