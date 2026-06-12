@@ -1,5 +1,10 @@
+import pickle
+from matplotlib import pyplot as plt
+import pandas as pd
+import shap
 import streamlit as st
 from datetime import datetime
+from backend.train_heart import MODEL_PATH
 from frontend_legacy.utils import api
 from frontend_legacy.components import charts
 
@@ -25,6 +30,13 @@ from frontend_legacy.components import charts
 # thal      – thalassemia: 1 = normal, 2 = fixed defect, 3 = reversible defect
 # ---------------------------------------------------------------------------
 
+# --- 1. Load the Model ---
+# We use @st.cache_resource so the model loads only once when the app starts, making it fast.
+@st.cache_resource
+def load_model():
+    with open(MODEL_PATH, 'rb') as f:
+        return pickle.load(f)
+
 
 def render_heart_page():
     st.markdown("""
@@ -41,6 +53,7 @@ def render_heart_page():
     # Autofill from profile
     # ------------------------------------------------------------------
     profile = api.fetch_profile() or {}
+    model = load_model()    
 
     # Age
     default_age = 45
@@ -189,6 +202,26 @@ def render_heart_page():
                 charts.render_radar_chart(inputs)
             with c2:
                 st.subheader("Explanation (SHAP)")
-                html = api.get_explanation("heart", inputs)
-                if html:
-                    st.components.v1.html(html, height=300, scrolling=True)
+                 # Convert to DataFrame
+                # 1. Wrap the inputs dict in a list so Pandas reads it as a single row
+                input_df = pd.DataFrame([inputs])
+
+                # 2. Filter out extra lab values (like HbA1c and glucose) if your trained model 
+                # only expects the 9 features defined in DIABETES_FEATURES.
+                # from backend.features import DIABETES_DATASET_MAP
+                # input_df = input_df[DIABETES_DATASET_MAP.values()]
+
+                # 3. Initialize the SHAP Explainer using your loaded model
+                explainer = shap.Explainer(model)
+
+                # 4. Compute the SHAP values safely using the cleaned DataFrame
+                shap_values = explainer(input_df)
+
+                # 5. Create the Matplotlib figure container (w , h) width and height in inches
+                fig, ax = plt.subplots(figsize=(9, 10))
+
+                # 6. Generate the Waterfall plot for our patient (row index 0)
+                shap.plots.waterfall(shap_values[0], show=False)
+
+                # 7. Safely push the visual into the Streamlit UI layout
+                st.pyplot(fig)
