@@ -9,6 +9,9 @@ import pandas as pd
 import shap
 import matplotlib.pyplot as plt
 
+
+# --- 1. Load the Model ---
+# We use @st.cache_resource so the model loads only once when the app starts, making it fast.
 @st.cache_resource
 def load_model():
     with open(MODEL_PATH, 'rb') as f:
@@ -24,17 +27,7 @@ def render_diabetes_page():
 </div>
 """, unsafe_allow_html=True)
 
-
-    # --- Configuration ---
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    #MODEL_PATH = os.path.join(BASE_DIR, "backend", "diabetes_model.pkl")
-
-    # --- 1. Load the Model ---
-    # We use @st.cache_resource so the model loads only once when the app starts, making it fast.
-    
-
     model = load_model()
-
     # --- Autofill Logic ---
     profile = api.fetch_profile() or {}
     
@@ -165,39 +158,11 @@ def render_diabetes_page():
                 # 4. Compute the SHAP values safely using the cleaned DataFrame
                 shap_values = explainer(input_df)
 
-                # 5. Create the Matplotlib figure container
-                fig, ax = plt.subplots(figsize=(10, 6))
+                # 5. Create the Matplotlib figure container (w , h) width and height in inches
+                fig, ax = plt.subplots(figsize=(9, 10))
 
                 # 6. Generate the Waterfall plot for our patient (row index 0)
                 shap.plots.waterfall(shap_values[0], show=False)
 
                 # 7. Safely push the visual into the Streamlit UI layout
                 st.pyplot(fig)
-        
-            # --- Generative AI Explanation ---
-#             with st.spinner("Generating AI Health Insights..."):
-#                 ai_resp = api.get_ai_explanation("Diabetes", inputs, prediction)
-                
-#             if ai_resp:
-#                 st.markdown("---")
-#                 st.subheader("🤖 AI Health Analysis")
-                
-#                 # Explanation
-#                 st.markdown(f"""
-# <div style="
-#     background: rgba(30, 41, 59, 0.5); 
-#     border-left: 4px solid #3B82F6;
-#     padding: 1rem;
-#     border-radius: 4px;
-#     margin-bottom: 1.5rem;
-# ">
-#     <h4 style="margin-top:0; color: #60A5FA;">Assessment</h4>
-#     <p style="margin-bottom:0; color: #E2E8F0;">{ai_resp.get('explanation', '')}</p>
-# </div>
-# """, unsafe_allow_html=True)
-                
-#                 # Tips
-#                 if ai_resp.get('lifestyle_tips'):
-#                     st.markdown("#### 💡 Personalized Recommendations")
-#                     for tip in ai_resp['lifestyle_tips']:
-#                         st.markdown(f"- {tip}")
