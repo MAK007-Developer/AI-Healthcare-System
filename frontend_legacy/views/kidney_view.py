@@ -1,6 +1,25 @@
+import pickle
 import streamlit as st
+import pandas as pd
+import numpy as np
+import shap
+from matplotlib import pyplot as plt
+from backend.train_kidney import MODEL_PATH, SCALER_PATH
 from frontend_legacy.utils import api  # Force reload
 from frontend_legacy.components import charts
+
+
+# --- 1. Load the Model ---
+@st.cache_resource
+def load_model():
+    with open(MODEL_PATH, 'rb') as f:
+        return pickle.load(f)
+
+# --- 2. Load the Scaler ---
+@st.cache_resource
+def load_scaler():
+    with open(SCALER_PATH, 'rb') as f:
+        return pickle.load(f)
 
 def render_kidney_page():
     st.markdown("""
@@ -12,6 +31,9 @@ def render_kidney_page():
 </div>
 """, unsafe_allow_html=True)
 
+    model = load_model()
+    scaler = load_scaler()
+    
     with st.form("kidney_form"):
         profile = api.fetch_profile() or {}
         # 1. Age Calculation
@@ -74,7 +96,11 @@ def render_kidney_page():
         if st.form_submit_button("Predict Kidney Health"):
             # Map inputs to Schema
             data = {
-                "age": age, "bp": bp, "sg": sg, "al": al, "su": su,
+                "age": age, 
+                "bp": bp, 
+                "sg": sg, 
+                "al": al, 
+                "su": su,
                 "rbc": 1 if rbc == "abnormal" else 0,
                 "pc": 1 if pc == "abnormal" else 0,
                 "pcc": 1 if pcc == "present" else 0,
@@ -84,11 +110,10 @@ def render_kidney_page():
                 "htn": 1 if htn == "yes" else 0,
                 "dm": 1 if dm == "yes" else 0,
                 "cad": 1 if cad == "yes" else 0,
-                "appet": 1 if appet == "poor" else 0, # Assuming 0 is good, need to verify. Usually 1 is bad.
+                "appet": 1 if appet == "poor" else 0, 
                 "pe": 1 if pe == "yes" else 0,
                 "ane": 1 if ane == "yes" else 0
             }
-            # Note on mapping: verify standard. Usually 1=Yes/Abnormal.
             
             with st.spinner("Analyzing..."):
                 result = api.get_prediction("kidney", data)
@@ -101,7 +126,40 @@ def render_kidney_page():
                 api.save_record("Kidney", data, pred)
                 
                 c1, c2 = st.columns(2)
-                with c1: charts.render_radar_chart(data)
+                with c1: 
+                    st.subheader("Feature Values")
+                    charts.render_radar_chart(data)
                 with c2: 
-                    html = api.get_explanation("kidney", data)
-                    if html: st.components.v1.html(html, height=300, scrolling=True)
+                    st.subheader("Feature Impact (SHAP)")
+
+                    # --- SHAP ADDITION START ---
+                    # 1. Map to a clean DataFrame
+                    input_df = pd.DataFrame([data])
+
+                    # 2. Enforce the canonical order of KIDNEY_FEATURES
+                    kidney_features_order = [
+                        'age', 'bp', 'sg', 'al', 'su', 'rbc', 'pc', 'pcc', 'ba', 
+                        'bgr', 'bu', 'sc', 'sod', 'pot', 'hemo', 'pcv', 'wc', 'rc', 
+                        'htn', 'dm', 'cad', 'appet', 'pe', 'ane'
+                    ]
+                    input_df = input_df[kidney_features_order]
+
+                    # Preserve unscaled values for rendering real inputs on chart lines
+                    display_df = input_df.copy()
+
+                    # 3. Transform using the loaded StandardScaler
+                    scaled_array = scaler.transform(input_df)
+                    input_df_final = pd.DataFrame(scaled_array, columns=input_df.columns)
+
+                    # 4. Generate SHAP values safely on the structured array
+                    explainer = shap.Explainer(model)
+                    shap_values = explainer(input_df_final)
+
+                    # 5. Overwrite display attributes with readable numbers
+                    shap_values.data = display_df.values
+
+                    # 6. Render the layout container object
+                    fig, ax = plt.subplots(figsize=(9, 10))
+                    shap.plots.waterfall(shap_values[0], show=False)
+                    st.pyplot(fig)
+                    
