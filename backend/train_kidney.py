@@ -13,7 +13,7 @@ except ImportError:
 
 # --- Configuration ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATASET_PATH = os.path.join(BASE_DIR, "..", "data", "processed", "kidney.parquet")
+DATASET_PATH = os.path.join(BASE_DIR, "data", "processed", "kidney.parquet")
 MODEL_PATH = os.path.join(BASE_DIR, "kidney_model.pkl")
 SCALER_PATH = os.path.join(BASE_DIR, "kidney_scaler.pkl")
 
