@@ -202,14 +202,9 @@ def render_heart_page():
                 charts.render_radar_chart(inputs)
             with c2:
                 st.subheader("Explanation (SHAP)")
-                 # Convert to DataFrame
+                # Convert to DataFrame
                 # 1. Wrap the inputs dict in a list so Pandas reads it as a single row
                 input_df = pd.DataFrame([inputs])
-
-                # 2. Filter out extra lab values (like HbA1c and glucose) if your trained model 
-                # only expects the 9 features defined in DIABETES_FEATURES.
-                # from backend.features import DIABETES_DATASET_MAP
-                # input_df = input_df[DIABETES_DATASET_MAP.values()]
 
                 # 3. Initialize the SHAP Explainer using your loaded model
                 explainer = shap.Explainer(model)
