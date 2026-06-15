@@ -1,6 +1,23 @@
 import streamlit as st
+import pickle
+from matplotlib import pyplot as plt
+import pandas as pd
+import numpy as np # Added for log transformations
+import shap
+from backend.train_liver import MODEL_PATH, SCALER_PATH
 from frontend_legacy.utils import api
 from frontend_legacy.components import charts
+
+@st.cache_resource
+def load_model():
+    with open(MODEL_PATH, 'rb') as f:
+        return pickle.load(f)
+
+# Added a cache resource to load our RobustScaler
+@st.cache_resource
+def load_scaler():
+    with open(SCALER_PATH, 'rb') as f:
+        return pickle.load(f)
 
 def render_liver_page():
     st.markdown("""
@@ -13,6 +30,8 @@ def render_liver_page():
 """, unsafe_allow_html=True)
     
     profile = api.fetch_profile() or {}
+    model = load_model()
+    scaler = load_scaler() # Load the scaler here
     
     # 1. Age Calculation
     default_age = 45
@@ -70,7 +89,49 @@ def render_liver_page():
             api.save_record("Liver", inputs, prediction)
             
             c1, c2 = st.columns(2)
-            with c1: charts.render_radar_chart(inputs)
-            with c2: 
-                html = api.get_explanation("liver", inputs)
-                if html: st.components.v1.html(html, height=300, scrolling=True)
+            with c1:
+                st.subheader("Feature Values") 
+                charts.render_radar_chart(inputs)
+            with c2:
+                st.subheader("Feature Impact (SHAP)") 
+
+                # 1. Convert to DataFrame
+                input_df = pd.DataFrame([inputs])
+
+                # 2. Rename Columns to match what the model was trained on
+                column_mapping = {
+                    'age': 'Age', 
+                    'gender': 'Gender', 
+                    'total_bilirubin': 'Total_Bilirubin',
+                    'direct_bilirubin': 'Direct_Bilirubin', 
+                    'alkaline_phosphotase': 'Alkaline_Phosphotase',
+                    'alamine_aminotransferase': 'Alamine_Aminotransferase',
+                    'aspartate_aminotransferase': 'Aspartate_Aminotransferase',
+                    'total_proteins': 'Total_Proteins', 
+                    'albumin': 'Albumin',
+                    'albumin_and_globulin_ratio': 'Albumin_and_Globulin_Ratio'
+                }
+                input_df_renamed = input_df.rename(columns=column_mapping)
+                
+                # Keep a copy of the raw renamed data so the waterfall chart shows real values
+                display_df = input_df_renamed.copy()
+
+                # 3. Apply Log Transformation to skewed features
+                skewed = ['Total_Bilirubin', 'Alkaline_Phosphotase', 'Alamine_Aminotransferase', 'Albumin_and_Globulin_Ratio']
+                input_df_renamed[skewed] = np.log1p(input_df_renamed[skewed])
+
+                # 4. Scale the features using our loaded RobustScaler
+                scaled_array = scaler.transform(input_df_renamed)
+                input_df_final = pd.DataFrame(scaled_array, columns=input_df_renamed.columns)
+
+                # 5. Initialize SHAP Explainer and calculate values using the PROCESSED data
+                explainer = shap.Explainer(model)
+                shap_values = explainer(input_df_final)
+
+                # 6. Swap out the scaled data in the SHAP object for the RAW data for user-readability
+                shap_values.data = display_df.values
+
+                # 7. Create the Matplotlib figure and render the waterfall plot
+                fig, ax = plt.subplots(figsize=(9, 10))
+                shap.plots.waterfall(shap_values[0], show=False)
+                st.pyplot(fig)
