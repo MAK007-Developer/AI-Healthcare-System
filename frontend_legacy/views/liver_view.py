@@ -84,16 +84,18 @@ def render_liver_page():
         if "error" in result:
             st.error(result['error'])
         else:
+            st.subheader("Prediction Result")
             prediction = result.get("prediction", "Unknown")
-            st.success(f"Result: **{prediction}**")
+            confidence = result.get("confidence", 0.0)
+            st.success(f"Result: **{prediction}** (Probability: {confidence}%)")
             api.save_record("Liver", inputs, prediction)
             
             c1, c2 = st.columns(2)
             with c1:
-                st.subheader("Feature Values") 
+                st.subheader("Risk Profile") 
                 charts.render_radar_chart(inputs)
             with c2:
-                st.subheader("Feature Impact (SHAP)") 
+                st.subheader("Explanation (SHAP)") 
 
                 # 1. Convert to DataFrame
                 input_df = pd.DataFrame([inputs])

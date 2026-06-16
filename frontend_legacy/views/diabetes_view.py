@@ -117,8 +117,10 @@ def render_diabetes_page():
         if "error" in result:
             st.error(f"Error: {result['error']}")
         else:
+            st.subheader("Prediction Result")
             prediction = result.get("prediction", "Unknown")
-            st.success(f"Result: **{prediction}**")
+            confidence = result.get("confidence", 0.0)
+            st.success(f"Result: **{prediction}** (Probability: {confidence}%)")
             
             # Save Record
             api.save_record("Diabetes", inputs, prediction)

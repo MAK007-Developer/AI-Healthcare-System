@@ -188,10 +188,12 @@ def render_heart_page():
         if "error" in result:
             st.error(result["error"])
         else:
+            st.subheader("Prediction Result")
             prediction = result.get("prediction", "Unknown")
+            confidence = result.get("confidence", 0.0)
             disclaimer = result.get("disclaimer", "")
+            st.success(f"Result: **{prediction}** (Probability: {confidence}%)")
 
-            st.success(f"Result: **{prediction}**")
             if disclaimer:
                 st.caption(disclaimer)
 

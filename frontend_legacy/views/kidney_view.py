@@ -121,16 +121,18 @@ def render_kidney_page():
             if "error" in result:
                 st.error(result['error'])
             else:
-                pred = result.get('prediction', 'Unknown')
-                st.success(f"Result: **{pred}**")
-                api.save_record("Kidney", data, pred)
+                st.subheader("Prediction Result")
+                prediction = result.get("prediction", "Unknown")
+                confidence = result.get("confidence", 0.0)
+                st.success(f"Result: **{prediction}** (Probability: {confidence}%)")
+                api.save_record("Kidney", data, prediction)
                 
                 c1, c2 = st.columns(2)
                 with c1: 
-                    st.subheader("Feature Values")
+                    st.subheader("Risk Profile")
                     charts.render_radar_chart(data)
                 with c2: 
-                    st.subheader("Feature Impact (SHAP)")
+                    st.subheader("Explanation (SHAP)")
 
                     # --- SHAP ADDITION START ---
                     # 1. Map to a clean DataFrame
