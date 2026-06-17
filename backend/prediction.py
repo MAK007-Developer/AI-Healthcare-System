@@ -64,19 +64,19 @@ def initialize_models():
     """Load all models into global state, using dummy fallbacks when files are missing."""
     global diabetes_model, heart_model, liver_model, liver_scaler, kidney_model, kidney_scaler, lungs_model, lungs_scaler
     
-    if os.getenv("TESTING"):
-        logger.info("TESTING MODE: Injecting mock models...")
-        from unittest.mock import MagicMock
-        mock_pred = lambda X: np.array([0])
-        diabetes_model = MagicMock(); diabetes_model.predict.side_effect = mock_pred
-        heart_model = MagicMock(); heart_model.predict.side_effect = mock_pred
-        liver_model = MagicMock(); liver_model.predict.side_effect = mock_pred
-        liver_scaler = MagicMock(); liver_scaler.transform.side_effect = lambda x: x
-        kidney_model = MagicMock(); kidney_model.predict.side_effect = mock_pred
-        kidney_scaler = MagicMock(); kidney_scaler.transform.side_effect = lambda x: x
-        lungs_model = MagicMock(); lungs_model.predict.side_effect = mock_pred
-        lungs_scaler = MagicMock(); lungs_scaler.transform.side_effect = lambda x: x
-        return
+    # if os.getenv("TESTING"):
+    #     logger.info("TESTING MODE: Injecting mock models...")
+    #     from unittest.mock import MagicMock
+    #     mock_pred = lambda X: np.array([0])
+    #     diabetes_model = MagicMock(); diabetes_model.predict.side_effect = mock_pred
+    #     heart_model = MagicMock(); heart_model.predict.side_effect = mock_pred
+    #     liver_model = MagicMock(); liver_model.predict.side_effect = mock_pred
+    #     liver_scaler = MagicMock(); liver_scaler.transform.side_effect = lambda x: x
+    #     kidney_model = MagicMock(); kidney_model.predict.side_effect = mock_pred
+    #     kidney_scaler = MagicMock(); kidney_scaler.transform.side_effect = lambda x: x
+    #     lungs_model = MagicMock(); lungs_model.predict.side_effect = mock_pred
+    #     lungs_scaler = MagicMock(); lungs_scaler.transform.side_effect = lambda x: x
+    #     return
 
     logger.info("Loading models...")
     diabetes_model = load_pkl(["diabetes_model.pkl"])
