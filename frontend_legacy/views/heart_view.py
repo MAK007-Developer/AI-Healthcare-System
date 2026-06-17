@@ -192,7 +192,11 @@ def render_heart_page():
             prediction = result.get("prediction", "Unknown")
             confidence = result.get("confidence", 0.0)
             disclaimer = result.get("disclaimer", "")
-            st.success(f"Result: **{prediction}** (Probability: {confidence}%)")
+
+            if confidence >= 50:
+                st.error(f"Result: **{prediction}** (Probability: {confidence}%)")
+            else:
+                st.success(f"Result: **{prediction}** (Probability: {confidence}%)")
 
             if disclaimer:
                 st.caption(disclaimer)

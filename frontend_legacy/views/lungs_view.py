@@ -104,7 +104,12 @@ def render_lungs_page():
                 st.subheader("Prediction Result")
                 prediction = result.get("prediction", "Unknown")
                 confidence = result.get("confidence", 0.0)
-                st.success(f"Result: **{prediction}** (Probability: {confidence}%)")
+
+                if confidence >= 50:
+                    st.error(f"Result: **{prediction}** (Probability: {confidence}%)")
+                else:
+                    st.success(f"Result: **{prediction}** (Probability: {confidence}%)")
+                    
                 api.save_record("Lungs", data, prediction)
 
                 c1, c2 = st.columns(2)
