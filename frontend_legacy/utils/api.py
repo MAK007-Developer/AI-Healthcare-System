@@ -11,29 +11,35 @@ from datetime import datetime, timedelta
 def resolve_backend_url():
     urls_str = None
     try:
-        urls_str = os.getenv("BACKEND_URLS") or st.secrets.get("BACKEND_URLS")
+        url = os.getenv("BACKEND_URL") or st.secrets.get("BACKEND_URL") or "http://127.0.0.1:8000"
     except FileNotFoundError:
-        urls_str = os.getenv("BACKEND_URLS")
+        url = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
         
-    if urls_str:
-        urls = [u.strip() for u in urls_str.split(',') if u.strip()]
-        # Fast failover ping
-        for url in urls:
-            try:
-                # Short timeout so we don't block user for 50s per asleep instance
-                if requests.get(f"{url}/healthz", timeout=2.5).status_code == 200:
-                    return url
-            except requests.exceptions.RequestException:
-                pass
-        # All dead or asleep? Pick the primary one and let it wake naturally
-        if urls:
-            return urls[0]
+    # Safeguard against localhost routing issues
+    if "localhost" in url:
+        url = url.replace("localhost", "127.0.0.1")
+        
+    return url
+        
+    # if urls_str:
+    #     urls = [u.strip() for u in urls_str.split(',') if u.strip()]
+    #     # Fast failover ping
+    #     for url in urls:
+    #         try:
+    #             # Short timeout so we don't block user for 50s per asleep instance
+    #             if requests.get(f"{url}/healthz", timeout=2.5).status_code == 200:
+    #                 return url
+    #         except requests.exceptions.RequestException:
+    #             pass
+    #     # All dead or asleep? Pick the primary one and let it wake naturally
+    #     if urls:
+    #         return urls[0]
 
-    # Fallback to legacy single URL
-    try:
-        return os.getenv("BACKEND_URL") or st.secrets.get("BACKEND_URL") or "http://127.0.0.1:8000"
-    except FileNotFoundError:
-        return os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
+    # # Fallback to legacy single URL
+    # try:
+    #     return os.getenv("BACKEND_URL") or st.secrets.get("BACKEND_URL") or "http://127.0.0.1:8000"
+    # except FileNotFoundError:
+    #     return os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
 
 BACKEND_URL = resolve_backend_url()
 
@@ -102,6 +108,7 @@ def login(username, password) -> bool:
         return False
     try:
         with st.spinner("Authenticating..."):
+            print(f"[DEBUG] Attempting login at: {BACKEND_URL}/token")
             resp = requests.post(f"{BACKEND_URL}/token", data={"username": username, "password": password})
         if resp.status_code == 200:
             token = resp.json()['access_token']
