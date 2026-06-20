@@ -47,6 +47,13 @@ def get_chat_history(current_user: models.User = Depends(auth.get_current_user),
 @router.post("/chat")
 def chat_endpoint(request: ChatRequest, current_user: models.User = Depends(auth.get_current_user), db: Session = Depends(database.get_db)):
     """AI Chat with RAG context."""
+    # --- DEBUGGING TRAIL ---
+    logger.info(f"--- NEW CHAT REQUEST ---")
+    logger.info(f"User ID: {current_user.id}")
+    logger.info(f"Incoming Message: {request.message}")
+    logger.info(f"Context payload: {request.current_context}")
+    # -----------------------
+    
     save_data = bool(current_user.allow_data_collection)
     
     # Build profile
