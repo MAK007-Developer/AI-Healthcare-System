@@ -96,7 +96,7 @@ pip install -r requirements-full.txt
 uvicorn backend.main:app --reload --port 8000
 
 # Start Frontend (Terminal 2)
-streamlit run frontend_legacy/main.py
+streamlit run frontend/main.py
 ```
 
 ### Option 3: Quick Scripts (Windows)
@@ -153,11 +153,15 @@ GitHub Actions automatically runs on every push:
 │   ├── prediction.py       # ML prediction logic
 │   ├── agent.py            # AI chat agent
 │   ├── rag.py              # RAG pipeline
-│   ├── vision_service.py   # Lab report analyzer
-│   └── *.pkl               # Trained ML models
+│   ├── schemas.py          # Where all db schemas
+│   ├── *.pkl               # Trained ML models
+│   ├── database.py         # Manages database
+│   ├── *.pkl               # Trained ML models
+│   └── appointments.py     # Manages CRUD of Appointments
 ├── frontend/               # Streamlit frontend
 │   ├── main.py             # App entrypoint
 │   ├── views/              # Page components
+│   ├── utils/              # has api.py manages routing between frontend and backend
 │   └── components/         # Reusable UI components
 ├── mlops/                  # MLOps pipeline
 │   ├── data_ingestion.py   # Data loading
@@ -167,7 +171,6 @@ GitHub Actions automatically runs on every push:
 │   ├── unit/               # Unit tests
 │   ├── integration/        # API integration tests
 │   └── e2e/                # End-to-end tests
-├── scripts/                # Utility scripts
 ├── docker-compose.yml      # Multi-container setup
 └── render.yaml             # Render deployment config
 ```
@@ -187,23 +190,5 @@ GitHub Actions automatically runs on every push:
 3. Set required environment variables:
    - `GOOGLE_API_KEY` - Gemini API key
    - `SECRET_KEY` - JWT signing key
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please check [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
