@@ -33,7 +33,6 @@ It's a full-stack solution diagnostic centers get a dashboard to manage patients
 ## ✨ Features
 
 - **For Patients:**
-    - 📄 **Smart Reports:** Upload a PDF and get an instant AI summary.
     - 🤖 **Health Assistant:** Chat with an AI that knows your medical history.
     - 🩺 **Risk Screening:** ML models check your vitals (Diabetes, Kidney, Liver, etc.).
 
@@ -98,16 +97,6 @@ uvicorn backend.main:app --reload --port 8000
 # Start Frontend (Terminal 2)
 streamlit run frontend/main.py
 ```
-
-### Option 3: Quick Scripts (Windows)
-```powershell
-# Run everything
-.\scripts\runners\run_app.bat
-
-# Run E2E tests
-.\scripts\runners\run_e2e_tests.ps1
-```
-
 ---
 
 ## 🛠️ Technology Stack
@@ -173,6 +162,36 @@ GitHub Actions automatically runs on every push:
 │   └── e2e/                # End-to-end tests
 ├── docker-compose.yml      # Multi-container setup
 └── render.yaml             # Render deployment config
+```
+
+## 📁 هيكل المشروع
+
+```
+├── backend/                # الواجهة الخلفية FastAPI
+│   ├── main.py             # مدخل واجهة برمجة التطبيقات
+│   ├── prediction.py       # منطق التنبؤ بالتعلم الآلي
+│   ├── agent.py            # وكيل الدردشة الذكية
+│   ├── rag.py              # أنبوب RAG
+│   ├── schemas.py          # حيث توجد جميع مخططات قاعدة البيانات
+│   ├── *.pkl               # نماذج تعلم آلي مدربة
+│   ├── database.py         # إدارة قاعدة البيانات
+│   ├── *.pkl               # نماذج تعلم آلي مدربة
+│   └── appointments.py     # إدارة CRUD للمواعيد
+├── frontend/               # الواجهة الأمامية Streamlit
+│   ├── main.py             # مدخل التطبيق
+│   ├── views/              # مكونات الصفحات
+│   ├── utils/              # يحتوي على api.py لإدارة المسارات بين الواجهة الأمامية والخلفية
+│   └── components/         # مكونات واجهة مستخدم قابلة لإعادة الاستخدام
+├── mlops/                  # أنبوب MLOps
+│   ├── data_ingestion.py   # تحميل البيانات
+│   ├── data_processing.py  # هندسة الميزات
+│   └── model_training.py   # سكربتات التدريب
+├── tests/                  # مجموعات الاختبار
+│   ├── unit/               # اختبارات الوحدة
+│   ├── integration/        # اختبارات تكامل واجهة برمجة التطبيقات
+│   └── e2e/                # اختبارات شاملة من الطرف إلى الطرف (تتطلب تشغيل التطبيق)
+├── docker-compose.yml      # إعداد متعدد الحاويات
+└── render.yaml             # تكوين نشر Render
 ```
 
 ---
